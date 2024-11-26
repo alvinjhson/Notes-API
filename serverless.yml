@@ -6,11 +6,47 @@ service: Notes
 provider:
   name: aws
   runtime: nodejs20.x
+  profile: test
+  region: eu-north-1
+  iam:
+    role: arn:aws:iam::225989356862:role/lectures-cloud 
 
-functions:
-  hello:
-    handler: handler.hello
+package:
+  individually: true  
+
+
+functions: 
+  signUp:
+    handler: functions/signup/index.handler
     events:
       - httpApi:
-          path: /
-          method: get
+          path: "/user/signup"
+          method: POST
+  logIn:
+    handler: functions/logIn/index.handler
+    events:
+      - httpApi:
+          path: "/user/login"
+          method: POST
+  createNote:
+    handler: functions/createNote/index.handler
+    events:
+      - httpApi:
+          path: /api/notes
+          method: POST  
+
+
+
+resources: 
+  Resources:
+    usersDb:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: notes-account
+        AttributeDefinitions:
+          - AttributeName: username
+            AttributeType: S
+        KeySchema:
+          - AttributeName: username
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
