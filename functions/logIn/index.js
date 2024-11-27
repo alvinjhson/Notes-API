@@ -17,10 +17,10 @@ async function getUser(username) {
     }).promise();
 
     if (user?.Item)
-        return user.Item
+        return user.Item;
     else
     console.log(error)
-    return false
+    return false;
 
 } catch (error) {
     console.log(error)

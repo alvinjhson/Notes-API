@@ -1,32 +1,86 @@
-const db = new AWS.DynamoDB.DocumentClient();
-const bcrypt = require("bcryptjs");
-const { sendResponse } = require("../../responses");
-const jwt = require("jsonwebtoken")
 
-const validateTOken= {
-    before : async (request) => {
+// const jwt = require("jsonwebtoken");
+
+// const validateToken = {
+//     before : async (request) => {
+//         try {
+//         const token = request.event.headers.authorization.replace("Bearer","")
+//         if (!token) throw new Error();
+
+//         const data = jwt.verify(token,"aabbcc")
+
+//         request.event.userId = data.userId;
+//         request.event.username = data.username;
+
+//         return request.response
+
+//         } catch (error) {
+//             request.event.error = "401";
+
+//             return request.response
+//         }
+//     }
+
+
+// }
+
+// const jwt = require("jsonwebtoken");
+
+// const validateToken = () => ({
+//     before: async (request) => {
+//         try {
+//             const token = request.event.headers.authorization?.replace("Bearer", "").trim();
+
+//             if (!token) {
+//                 console.error("Token is missing or malformed");
+//                 throw new Error("Unauthorized");
+//             }
+
+//             const data = jwt.verify(token, "aabbcc"); // Use your actual secret key
+//             console.log("Decoded Token:", data);
+
+//             // Attach user information to the event
+//             request.event.user = {
+//                 id: data.id,
+//                 username: data.username,
+//             };
+
+//         } catch (error) {
+//             console.error("Token validation error:", error.message);
+//             throw new Error("Unauthorized");
+//         }
+//     },
+// });
+
+// module.exports = { validateToken };
+
+
+
+
+
+const jwt = require("jsonwebtoken");
+
+const validateToken = {
+    before: async (request) => {
         try {
-        const token = request.event.headers.authoriztation.replace("Bearer","")
-        if (token) throw new Error();
+            const token = request.event.headers.authorization?.replace("Bearer ", "");
 
-        jwt.verify(token,"aabbcc")
+            if (!token) {
+                throw new Error("Token is missing or malformed");
+            }
 
-        request.event.id = data.id;
-        request.event.username = data.username;
+            const data = jwt.verify(token, "aabbcc"); // Replace with your actual secret key
 
-        return request.response
-
+            // Attach the decoded user info to the event
+            request.event.user = {
+                id: data.id,
+                username: data.username,
+            };
         } catch (error) {
-            request.event.error = "401";
-
-            return request.response
+            console.error("Token validation error:", error.message);
+            throw new Error("Unauthorized");
         }
-    }
+    },
+};
 
-
-}
-
-module.exports = { validateToken};
-
-// const handler = middy(getfunc)
-//  .use(validateToken)
+module.exports = { validateToken };
