@@ -35,8 +35,7 @@ async function createAccount(username,hashedPassword,userId,firstname,lastname) 
 
 
 async function signup(username, password ,firstname , lastname) {
-    //check if username already exist
-    // if username exist -> return { success: false, meassage: "username alreay exists"}
+  
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const userId = nanoid();

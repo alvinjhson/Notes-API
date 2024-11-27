@@ -21,11 +21,11 @@ async function saveNoteToDB(note) {
 const baseHandler = async (event) => {
     console.log("Event received:", JSON.stringify(event));
 
-    // Parse event body
+ 
     const parsedBody = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
     const { title, text } = parsedBody;
 
-    // Extract userId from event.user
+ 
     const { id: userId } = event.user || {};
 
     if (!userId) {
@@ -66,10 +66,11 @@ const baseHandler = async (event) => {
 };
 
 const handler = middy(baseHandler)
-    .use(validateToken) // Apply middleware directly
+    .use(validateToken) 
     .onError((error) => {
         console.error("Unhandled error:", error.message);
         return sendResponse(500, { success: false, message: "Internal Server Error" });
     });
 
 module.exports = { handler };
+

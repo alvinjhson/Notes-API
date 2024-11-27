@@ -38,7 +38,12 @@ functions:
       - httpApi:
           path: /api/notes
           method: POST  
-
+  getNote:
+    handler: functions/getNote/index.handler
+    events:
+      - httpApi:
+          path: "/api/notes/{id}" # Note ID skickas som en path-parameter
+          method: GET
 
 
 resources: 
