@@ -1,113 +1,3 @@
-// const AWS = require("aws-sdk");
-// const middy = require("@middy/core");
-// const { sendResponse } = require("../../responses");
-// const { validateToken } = require("../../middleware/auth");
-
-// // Initialize DynamoDB Document Client
-// const db = new AWS.DynamoDB.DocumentClient();
-
-// // Function to update the note in DynamoDB
-// async function updateNoteInDB(noteId, userId, updatedFields) {
-//     try {
-//         console.log("Preparing to update note in DB:", { noteId, userId, updatedFields });
-
-//         const params = {
-//             TableName: "notes",
-//             Key: { id: noteId },
-//             UpdateExpression: "set title = :title, text = :text, modifiedAt = :modifiedAt",
-//             ConditionExpression: "userId = :userId", // Ensure the note belongs to the user
-//             ExpressionAttributeValues: {
-//                 ":title": updatedFields.title,
-//                 ":text": updatedFields.text,
-//                 ":modifiedAt": new Date().toISOString(),
-//                 ":userId": userId,
-//             },
-//             ReturnValues: "ALL_NEW",
-//         };
-
-//         console.log("Update params:", params);
-
-//         const result = await db.update(params).promise();
-//         console.log("Note updated successfully:", result.Attributes);
-
-//         return result.Attributes; // Return the updated note
-//     } catch (error) {
-//         if (error.name === "ConditionalCheckFailedException") {
-//             console.error("Unauthorized access attempt:", { noteId, userId, error: error.message });
-//             return { error: "Unauthorized" }; // User doesn't own the note
-//         }
-
-//         console.error("Error updating note:", { noteId, userId, error: error.message });
-//         throw new Error("Internal Server Error");
-//     }
-// }
-
-// // Main handler logic
-// const baseHandler = async (event) => {
-//     console.log("Event received:", JSON.stringify(event));
-
-//     // Extract note ID from pathParameters
-//     const noteId = event.pathParameters?.id; // Safely access the path parameter
-//     if (!noteId) {
-//         console.error("Note ID is missing in the request.");
-//         return sendResponse(400, { success: false, message: "Note ID is required." });
-//     }
-//     console.log("Note ID extracted:", noteId);
-
-//     // Extract user info from JWT token (via middleware)
-//     const { id: userId } = event.user || {}; // Handle missing user object gracefully
-//     if (!userId) {
-//         console.error("Unauthorized: userId is missing from event.user");
-//         return sendResponse(401, { success: false, message: "Unauthorized" });
-//     }
-//     console.log("User ID extracted:", userId);
-
-//     // Extract and validate incoming data
-//     let parsedBody;
-//     try {
-//         parsedBody = JSON.parse(event.body);
-//     } catch (error) {
-//         console.error("Invalid JSON body:", error.message);
-//         return sendResponse(400, { success: false, message: "Invalid request body." });
-//     }
-
-//     const { title, text } = parsedBody || {};
-//     console.log("Parsed body content:", { title, text });
-
-//     if (!title || title.length > 50) {
-//         console.error("Title validation failed:", { title });
-//         return sendResponse(400, { success: false, message: "Title is required and must be 50 characters or less." });
-//     }
-//     if (!text || text.length > 300) {
-//         console.error("Text validation failed:", { text });
-//         return sendResponse(400, { success: false, message: "Text is required and must be 300 characters or less." });
-//     }
-
-//     const updatedFields = { title, text };
-
-//     // Update the note in DynamoDB
-//     const updatedNote = await updateNoteInDB(noteId, userId, updatedFields);
-
-//     if (updatedNote.error === "Unauthorized") {
-//         console.error("Unauthorized access to note:", { noteId, userId });
-//         return sendResponse(403, { success: false, message: "Unauthorized access." });
-//     }
-
-//     console.log("Updated note:", updatedNote);
-
-//     // Return the updated note
-//     return sendResponse(200, { success: true, note: updatedNote });
-// };
-
-// // Wrap the handler with Middy and middleware
-// const handler = middy(baseHandler)
-//     .use(validateToken) // Validate token as middleware
-//     .onError((error) => {
-//         console.error("Unhandled error:", { message: error.message, stack: error.stack });
-//         return sendResponse(500, { success: false, message: "Internal Server Error" });
-//     });
-
-// module.exports = { handler };
 const middy = require("@middy/core");
 const AWS = require("aws-sdk");
 const { sendResponse } = require("../../responses");
@@ -115,7 +5,7 @@ const { validateToken } = require("../../middleware/auth");
 
 const db = new AWS.DynamoDB.DocumentClient();
 
-// Helper to fetch note from DynamoDB
+
 async function getNoteFromDB(noteId) {
     try {
         const result = await db.get({
@@ -129,14 +19,14 @@ async function getNoteFromDB(noteId) {
     }
 }
 
-// Function to update the note in DynamoDB
+
 async function updateNoteInDB(noteId, userId, updatedFields) {
     try {
         const params = {
             TableName: "notes",
             Key: { id: noteId },
-            UpdateExpression: "set title = :title, #text = :text, modifiedAt = :modifiedAt", // Use #text for aliasing
-            ConditionExpression: "userId = :userId", // Ensure the note belongs to the user
+            UpdateExpression: "set title = :title, #text = :text, modifiedAt = :modifiedAt", 
+            ConditionExpression: "userId = :userId",
             ExpressionAttributeValues: {
                 ":title": updatedFields.title,
                 ":text": updatedFields.text,
@@ -144,17 +34,17 @@ async function updateNoteInDB(noteId, userId, updatedFields) {
                 ":userId": userId,
             },
             ExpressionAttributeNames: {
-                "#text": "text", // Alias the reserved keyword "text"
+                "#text": "text", 
             },
             ReturnValues: "ALL_NEW",
         };
 
         const result = await db.update(params).promise();
-        return result.Attributes; // Return the updated note
+        return result.Attributes; 
     } catch (error) {
         if (error.name === "ConditionalCheckFailedException") {
             console.error("Unauthorized access attempt:", { noteId, userId });
-            return { error: "Unauthorized" }; // User doesn't own the note
+            return { error: "Unauthorized" }; 
         }
         console.error("Unexpected error while updating note:", { error });
         throw new Error("Internal Server Error");
@@ -162,7 +52,7 @@ async function updateNoteInDB(noteId, userId, updatedFields) {
 }
 
 
-// Main handler logic
+
 const baseHandler = async (event) => {
     console.log("Event received:", JSON.stringify(event));
 
@@ -211,7 +101,6 @@ const baseHandler = async (event) => {
     return sendResponse(200, { success: true, note: updatedNote });
 };
 
-// Wrap the handler with Middy and middleware
 const handler = middy(baseHandler)
     .use(validateToken)
     .onError((error) => {
