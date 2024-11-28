@@ -6,11 +6,90 @@ service: Notes
 provider:
   name: aws
   runtime: nodejs20.x
+  profile: test
+  region: eu-north-1
+  iam:
+    role: arn:aws:iam::225989356862:role/lectures-cloud 
+
+package:
+  individually: true  
+
+build:
+  esbuild:
+    minify: true  
+
 
 functions:
-  hello:
-    handler: handler.hello
+  signUp:
+    handler: functions/signup/index.handler
     events:
       - httpApi:
-          path: /
-          method: get
+          path: /user/signup
+          method: POST
+  logIn:
+    handler: functions/logIn/index.handler
+    events:
+      - httpApi:
+          path: /user/login
+          method: POST
+  createNote:
+    handler: functions/createNote/index.handler
+    events:
+      - httpApi:
+          path: /api/notes
+          method: POST
+  getNote:
+    handler: functions/getNote/index.handler
+    events:
+      - httpApi:
+          path: /api/notes/{id}
+          method: GET
+  changeNote:
+    handler: functions/changeNote/index.handler
+    events:
+      - httpApi:
+          path: /api/notes/{id}
+          method: PUT
+  deleteNote:
+    handler: functions/deleteNote/index.handler
+    events:
+      - httpApi:
+          path: /api/notes/{id}
+          method: DELETE
+
+              
+
+resources: 
+  Resources:
+    usersDb:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: notes-account
+        AttributeDefinitions:
+          - AttributeName: username
+            AttributeType: S
+        KeySchema:
+          - AttributeName: username
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        
+    NotesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: notes
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: userId-index
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
