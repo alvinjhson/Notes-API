@@ -19,32 +19,39 @@ build:
     minify: true  
 
 
-functions: 
+functions:
   signUp:
     handler: functions/signup/index.handler
     events:
       - httpApi:
-          path: "/user/signup"
+          path: /user/signup
           method: POST
   logIn:
     handler: functions/logIn/index.handler
     events:
       - httpApi:
-          path: "/user/login"
+          path: /user/login
           method: POST
   createNote:
     handler: functions/createNote/index.handler
     events:
       - httpApi:
           path: /api/notes
-          method: POST  
+          method: POST
   getNote:
     handler: functions/getNote/index.handler
     events:
       - httpApi:
-          path: "/api/notes/{id}" # Note ID skickas som en path-parameter
+          path: /api/notes/{id}
           method: GET
+  changeNote:
+    handler: functions/changeNote/index.handler
+    events:
+      - httpApi:
+          path: /api/notes/{id}
+          method: PUT
 
+              
 
 resources: 
   Resources:

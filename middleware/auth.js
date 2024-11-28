@@ -10,7 +10,7 @@ const validateToken = {
                 throw new Error("Token is missing or malformed");
             }
 
-            const data = jwt.verify(token, "aabbcc"); // Replace 
+            const data = jwt.verify(token, "aabbcc"); // Replace
 
             request.event.user = {
                 id: data.id,
