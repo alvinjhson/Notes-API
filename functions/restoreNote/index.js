@@ -15,7 +15,7 @@ async function restoreNoteInDB(noteId, userId) {
                 ":isDeleted": false,
                 ":modifiedAt": new Date().toISOString(),
                 ":userId": userId,
-                ":currentDeleted": true, // Ensure note is marked as deleted
+                ":currentDeleted": true, 
             },
             ReturnValues: "ALL_NEW",
         };

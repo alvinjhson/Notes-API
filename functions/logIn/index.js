@@ -52,8 +52,8 @@ exports.handler = async (event) => {
     const result = await login(username, password);
 
     if (result.success)
-        return sendResponse(200,result);
+        return sendResponse(200,result,"Account logged in");
     else 
-        return sendResponse(400,result);
+        return sendResponse(400,result,"Username or Password is Incorrect");
 
 }

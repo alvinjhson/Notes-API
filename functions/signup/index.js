@@ -53,9 +53,9 @@ exports.handler = async (event) => {
 
     const result = await signup(username,password,firstname,lastname);
     if (result.success)
-        return sendResponse(200, result);
+        return sendResponse(200, result, "Account Created");
     else
-    return sendResponse(400, result);
+    return sendResponse(400, result,"Could not create account");
    
 
 

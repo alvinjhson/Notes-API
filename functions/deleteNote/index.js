@@ -11,7 +11,7 @@ async function deleteNoteFromDB(noteId, userId) {
             TableName: "notes",
             Key: { id: noteId },
             UpdateExpression: "set isDeleted = :isDeleted, modifiedAt = :modifiedAt",
-            ConditionExpression: "userId = :userId", // Ensure the note belongs to the user
+            ConditionExpression: "userId = :userId", 
             ExpressionAttributeValues: {
                 ":isDeleted": true,
                 ":modifiedAt": new Date().toISOString(),
@@ -63,7 +63,7 @@ const baseHandler = async (event) => {
     if (result.error === "Note not found") {
         return sendResponse(404, { success: false, message: "Note not found." });
     }
-
+    
     return sendResponse(200, { success: true, message: "Note deleted successfully." });
 };
 
