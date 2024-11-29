@@ -52,10 +52,10 @@ const baseHandler = async (event) => {
 
     if (restoredNote.error) {
         console.error("Failed to restore note:", restoredNote.error);
-        return sendResponse(403, { success: false, message: restoredNote.error });
+        return sendResponse(400, { success: false, message: restoredNote.error });
     }
 
-    return sendResponse(200, { success: true, note: restoredNote });
+    return sendResponse(200, { success: true, note: restoredNote, message: "Note succesfully restored" });
 };
 
 

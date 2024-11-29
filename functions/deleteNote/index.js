@@ -57,13 +57,13 @@ const baseHandler = async (event) => {
     const result = await deleteNoteFromDB(noteId, userId);
 
     if (result.error === "Unauthorized") {
-        return sendResponse(403, { success: false, message: "Unauthorized access." });
+        return sendResponse(401, { success: false, message: "Unauthorized access." });
     }
 
     if (result.error === "Note not found") {
         return sendResponse(404, { success: false, message: "Note not found." });
     }
-    
+
     return sendResponse(200, { success: true, message: "Note deleted successfully." });
 };
 

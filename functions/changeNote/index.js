@@ -69,7 +69,7 @@ const baseHandler = async (event) => {
     }
 
     if (note.userId !== userId) {
-        return sendResponse(403, { success: false, message: "You are not authorized to update this note." });
+        return sendResponse(401, { success: false, message: "You are not authorized to update this note." });
     }
 
     let parsedBody;
@@ -92,10 +92,10 @@ const baseHandler = async (event) => {
     const updatedNote = await updateNoteInDB(noteId, userId, updatedFields);
 
     if (updatedNote.error === "Unauthorized") {
-        return sendResponse(403, { success: false, message: "Unauthorized access or note is deleted." });
+        return sendResponse(401, { success: false, message: "Unauthorized access or note is deleted." });
     }
 
-    return sendResponse(200, { success: true, note: updatedNote });
+    return sendResponse(200, { success: true, note: updatedNote, message: "Note updated"});
 };
 
 const handler = middy(baseHandler)

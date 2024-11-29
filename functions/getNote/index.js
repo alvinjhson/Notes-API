@@ -44,7 +44,7 @@ const baseHandler = async (event) => {
         return sendResponse(401, { success: false, message: "You are not authorized to access this note." });
     }
 
-    return sendResponse(200, { success: true, note , message: "Note retrieved successfilly" });
+    return sendResponse(200, { success: true, note , message: "Note retrieved successfully" });
 };
 
 const handler = middy(baseHandler)
