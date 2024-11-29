@@ -5,7 +5,6 @@ const { validateToken } = require("../../middleware/auth");
 
 const db = new AWS.DynamoDB.DocumentClient();
 
-
 async function getNoteFromDB(noteId) {
     try {
         const result = await db.get({
@@ -19,19 +18,19 @@ async function getNoteFromDB(noteId) {
     }
 }
 
-
 async function updateNoteInDB(noteId, userId, updatedFields) {
     try {
         const params = {
             TableName: "notes",
             Key: { id: noteId },
             UpdateExpression: "set title = :title, #text = :text, modifiedAt = :modifiedAt", 
-            ConditionExpression: "userId = :userId",
+            ConditionExpression: "userId = :userId AND isDeleted = :isDeleted", 
             ExpressionAttributeValues: {
                 ":title": updatedFields.title,
                 ":text": updatedFields.text,
                 ":modifiedAt": new Date().toISOString(),
                 ":userId": userId,
+                ":isDeleted": false, 
             },
             ExpressionAttributeNames: {
                 "#text": "text", 
@@ -40,18 +39,16 @@ async function updateNoteInDB(noteId, userId, updatedFields) {
         };
 
         const result = await db.update(params).promise();
-        return result.Attributes; 
+        return result.Attributes;
     } catch (error) {
         if (error.name === "ConditionalCheckFailedException") {
-            console.error("Unauthorized access attempt:", { noteId, userId });
-            return { error: "Unauthorized" }; 
+            console.error("Unauthorized or trying to modify a deleted note:", { noteId, userId });
+            return { error: "Unauthorized or note is deleted" };
         }
-        console.error("Unexpected error while updating note:", { error });
+        console.error("Unexpected error while updating note:", error);
         throw new Error("Internal Server Error");
     }
 }
-
-
 
 const baseHandler = async (event) => {
     console.log("Event received:", JSON.stringify(event));
@@ -95,7 +92,7 @@ const baseHandler = async (event) => {
     const updatedNote = await updateNoteInDB(noteId, userId, updatedFields);
 
     if (updatedNote.error === "Unauthorized") {
-        return sendResponse(403, { success: false, message: "Unauthorized access." });
+        return sendResponse(403, { success: false, message: "Unauthorized access or note is deleted." });
     }
 
     return sendResponse(200, { success: true, note: updatedNote });

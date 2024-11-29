@@ -50,6 +50,7 @@ const baseHandler = async (event) => {
         text,
         createdAt: new Date().toISOString(),
         modifiedAt: new Date().toISOString(),
+        isDeleted: false,
     };
 
     console.log("Note to be saved:", note);
