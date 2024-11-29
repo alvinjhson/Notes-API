@@ -35,16 +35,16 @@ const baseHandler = async (event) => {
     }
 
     if (note.isDeleted) {
-        return sendResponse(403, { success: false, message: "The note has been deleted." });
+        return sendResponse(404, { success: false, message: "The note has been deleted." });
     }
 
     const { id: userId } = event.user;
 
     if (note.userId !== userId) {
-        return sendResponse(403, { success: false, message: "You are not authorized to access this note." });
+        return sendResponse(401, { success: false, message: "You are not authorized to access this note." });
     }
 
-    return sendResponse(200, { success: true, note });
+    return sendResponse(200, { success: true, note , message: "Note retrieved successfilly" });
 };
 
 const handler = middy(baseHandler)

@@ -63,7 +63,7 @@ const baseHandler = async (event) => {
         return sendResponse(500, { success: false, message: "Internal Server Error" });
     }
 
-    return sendResponse(201, { success: true, note });
+    return sendResponse(200, { success: true, note, message: "Note created successsfully" });
 };
 
 const handler = middy(baseHandler)
