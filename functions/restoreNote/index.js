@@ -2,75 +2,67 @@ const middy = require("@middy/core");
 const AWS = require("aws-sdk");
 const { sendResponse } = require("../../responses");
 const { validateToken } = require("../../middleware/auth");
-
 const db = new AWS.DynamoDB.DocumentClient();
 
-async function deleteNoteFromDB(noteId, userId) {
+async function restoreNoteInDB(noteId, userId) {
     try {
         const params = {
             TableName: "notes",
             Key: { id: noteId },
             UpdateExpression: "set isDeleted = :isDeleted, modifiedAt = :modifiedAt",
-            ConditionExpression: "userId = :userId", 
+            ConditionExpression: "userId = :userId AND isDeleted = :currentDeleted",
             ExpressionAttributeValues: {
-                ":isDeleted": true,
+                ":isDeleted": false,
                 ":modifiedAt": new Date().toISOString(),
                 ":userId": userId,
+                ":currentDeleted": true, 
             },
             ReturnValues: "ALL_NEW",
         };
 
         const result = await db.update(params).promise();
-        if (!result.Attributes) {
-            console.error("Note not found or already deleted:", { noteId, userId });
-            return { error: "Note not found" };
-        }
         return result.Attributes;
     } catch (error) {
         if (error.name === "ConditionalCheckFailedException") {
-            console.error("Condition check failed. Note ID or user ID mismatch:", { noteId, userId });
-            return { error: "Unauthorized" };
+            console.error("Restore failed. Note not found or not authorized:", { noteId, userId });
+            return { error: "Unauthorized or Note Not Found" };
         }
-        console.error("Error deleting note:", error.message);
+        console.error("Error restoring note:", error.message);
         throw new Error("Internal Server Error");
     }
 }
 
+
 const baseHandler = async (event) => {
     console.log("Event received:", JSON.stringify(event));
-
-    const noteId = event.pathParameters?.id; 
+    
+    const noteId = event.pathParameters?.id;
     if (!noteId) {
+        console.error("Missing note ID.");
         return sendResponse(400, { success: false, message: "Note ID is required." });
     }
 
-    console.log("Extracted Note ID:", noteId);
-
-    const { id: userId } = event.user || {}; 
+    const { id: userId } = event.user || {};
     if (!userId) {
-        console.error("Unauthorized: userId is missing from event.user");
+        console.error("Missing user ID in event.user.");
         return sendResponse(401, { success: false, message: "Unauthorized" });
     }
 
-    console.log("Extracted user ID:", userId);
+    const restoredNote = await restoreNoteInDB(noteId, userId);
 
-    const result = await deleteNoteFromDB(noteId, userId);
-
-    if (result.error === "Unauthorized") {
-        return sendResponse(401, { success: false, message: "Unauthorized access." });
+    if (restoredNote.error) {
+        console.error("Failed to restore note:", restoredNote.error);
+        return sendResponse(400, { success: false, message: restoredNote.error });
     }
 
-    if (result.error === "Note not found") {
-        return sendResponse(404, { success: false, message: "Note not found." });
-    }
-
-    return sendResponse(200, { success: true, message: "Note deleted successfully." });
+    return sendResponse(200, { success: true, note: restoredNote, message: "Note succesfully restored" });
 };
 
+
 const handler = middy(baseHandler)
-    .use(validateToken) 
+    .use(validateToken)
     .onError((error) => {
-        console.error("Unhandled error:", error.message || error);
+        console.error("Unhandled error:", error.message);
         return sendResponse(500, { success: false, message: "Internal Server Error" });
     });
 
